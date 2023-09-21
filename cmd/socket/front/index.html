@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h1>Test websocket</h1>
+<button id="sendButton">Send Message</button>
+</body>
+<script>
+    const socket = new WebSocket("ws://localhost:8080/");
+
+    socket.onopen = event => {
+        console.log("Connected to WebSocket");
+    };
+
+    socket.onmessage = event => {
+        console.log("Received:", event.data);
+    };
+
+    socket.onclose = event => {
+        console.log("WebSocket connection closed:", event);
+    };
+
+    socket.onerror = event => {
+        console.log("WebSocket error:", event);
+    };
+
+    const sendButton = document.getElementById("sendButton");
+    sendButton.addEventListener("click", () => {
+        const message = {
+            sendID:1,
+            recvID:2,
+            groupID:1,
+            clientMsgID:"1",
+            serverMsgID:"1",
+            senderPlatformID:1,
+            senderNickname:"chd",
+            senderFaceURL:"http://url.com",
+            sessionType:1001,
+            msgFrom:1,
+            contentType:1,
+            content:btoa("this is test"),
+            seq:1,
+            sendTime:new Date().getTime(),
+            createTime:new Date().getTime(),
+            status:1,
+            isRead:false,
+            options:{},
+            ex:"null"
+        };
+        socket.send(JSON.stringify(message));
+
+        console.log("Sent:", message);
+    });
+
+</script>
+</html>
