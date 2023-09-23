@@ -2,9 +2,9 @@ package db
 
 import (
 	"fmt"
+	"github.com/chdlvy/go-chatFrame/pkg/common/config"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"server/pkg/common/config"
 	"time"
 )
 

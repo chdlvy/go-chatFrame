@@ -1,6 +1,6 @@
 package db
 
-import "server/pkg/common/model"
+import "github.com/chdlvy/go-chatFrame/pkg/common/model"
 
 type ChatLogDatabase interface {
 	CreateChatLog(msg *model.MsgData) error

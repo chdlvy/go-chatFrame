@@ -1,8 +1,8 @@
 package chatlog
 
 import (
-	"server/pkg/common/db"
-	"server/pkg/common/model"
+	"github.com/chdlvy/go-chatFrame/pkg/common/db"
+	"github.com/chdlvy/go-chatFrame/pkg/common/model"
 )
 
 type ChatLogServer struct {

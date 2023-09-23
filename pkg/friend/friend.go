@@ -2,9 +2,9 @@ package friend
 
 import (
 	"context"
+	"github.com/chdlvy/go-chatFrame/pkg/common/db"
+	"github.com/chdlvy/go-chatFrame/pkg/common/db/cache"
 	"log"
-	"server/pkg/common/db"
-	"server/pkg/common/db/cache"
 )
 
 type FriendServer struct {

@@ -1,8 +1,8 @@
 package db
 
 import (
-	"chatFrame/constant"
-	"chatFrame/pkg/common/model"
+	"github.com/chdlvy/go-chatFrame/constant"
+	"github.com/chdlvy/go-chatFrame/pkg/common/model"
 	"gorm.io/gorm"
 	"time"
 )

@@ -1,4 +1,4 @@
-module chatFrame
+module github.com/chdlvy/go-chatFrame
 
 go 1.19
 

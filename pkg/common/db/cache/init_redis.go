@@ -2,14 +2,12 @@ package cache
 
 import (
 	"errors"
-	"fmt"
+	"github.com/chdlvy/go-chatFrame/pkg/common/config"
 	"github.com/redis/go-redis/v9"
-	"server/pkg/common/config"
 )
 
 func NewRedis() (redis.UniversalClient, error) {
 	var rdb redis.UniversalClient
-	fmt.Println(config.Config.Redis)
 	if len(config.Config.Redis.Address) == 0 {
 		return nil, errors.New("redis address is empty")
 	}

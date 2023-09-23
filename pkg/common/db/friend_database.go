@@ -3,10 +3,10 @@ package db
 import (
 	"context"
 	"errors"
+	"github.com/chdlvy/go-chatFrame/constant"
+	"github.com/chdlvy/go-chatFrame/pkg/common/db/cache"
 	"gorm.io/gorm"
 	"log"
-	"server/constant"
-	"server/pkg/common/db/cache"
 	"time"
 )
 

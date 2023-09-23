@@ -16,20 +16,6 @@ type LongConn interface {
 	GenerateLongConn(w http.ResponseWriter, r *http.Request) error
 }
 
-func ReSetLongConnConf(wsPort int, wsSocketTimeout time.Duration, wsMaxConnNum int) {
-	if Config == nil {
-		Config = &configStruct{LongConnconf: struct {
-			port                int
-			WebsocketMaxConnNum int
-			WebsocketMaxMsgLen  int
-			WebsocketTimeout    time.Duration
-		}{port: 0, WebsocketMaxConnNum: 0, WebsocketMaxMsgLen: 0, WebsocketTimeout: 0}}
-	}
-	Config.LongConnconf.port = wsPort
-	Config.LongConnconf.WebsocketTimeout = wsSocketTimeout
-	Config.LongConnconf.WebsocketMaxConnNum = wsMaxConnNum
-}
-
 // 生成长连接
 type GWebSocket struct {
 	conn             *websocket.Conn

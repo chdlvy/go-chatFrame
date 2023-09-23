@@ -1,7 +1,7 @@
 package group
 
 import (
-	"server/pkg/common/db"
+	"github.com/chdlvy/go-chatFrame/pkg/common/db"
 	"time"
 )
 
@@ -37,9 +37,8 @@ type GroupInfo struct {
 	GroupType     int32  `protobuf:"varint,12,opt,name=groupType,proto3" json:"groupType"`
 }
 
-func Start() error {
+func StartGroupServer() error {
 	//mysql
-
 	gdb, err := db.NewGormDB()
 	if err != nil {
 		return err

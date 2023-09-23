@@ -1,9 +1,9 @@
 package group
 
 import (
-	"chatFrame/pkg/common/db"
 	"context"
 	"errors"
+	"github.com/chdlvy/go-chatFrame/pkg/common/db"
 	"math/rand"
 	"time"
 )

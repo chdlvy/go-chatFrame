@@ -1,7 +1,7 @@
 package db
 
 import (
-	"chatFrame/pkg/common/model"
+	"github.com/chdlvy/go-chatFrame/pkg/common/model"
 	"time"
 )
 

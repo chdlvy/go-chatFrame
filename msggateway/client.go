@@ -2,9 +2,9 @@ package msggateway
 
 import (
 	"encoding/json"
+	"github.com/chdlvy/go-chatFrame/pkg/common/model"
 	"log"
 	"os"
-	"server/pkg/common/model"
 	"strconv"
 	"strings"
 	"time"

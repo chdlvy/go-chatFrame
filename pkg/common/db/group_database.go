@@ -1,8 +1,8 @@
 package db
 
 import (
-	"chatFrame/pkg/common/db/cache"
 	"context"
+	"github.com/chdlvy/go-chatFrame/pkg/common/db/cache"
 	"gorm.io/gorm"
 	"log"
 	"strconv"

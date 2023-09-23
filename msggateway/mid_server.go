@@ -1,11 +1,11 @@
 package msggateway
 
 import (
-	"chatFrame/pkg/chatlog"
-	"chatFrame/pkg/common/db"
-	"chatFrame/pkg/friend"
-	"chatFrame/pkg/group"
 	"context"
+	"github.com/chdlvy/go-chatFrame/pkg/chatlog"
+	"github.com/chdlvy/go-chatFrame/pkg/common/db"
+	"github.com/chdlvy/go-chatFrame/pkg/friend"
+	"github.com/chdlvy/go-chatFrame/pkg/group"
 	"log"
 )
 
@@ -29,20 +29,16 @@ func NewMidServer() *MidServer {
 }
 
 func StartMidServer() error {
-	if err := group.Start(); err != nil {
-		log.Println(err)
+	if err := group.StartGroupServer(); err != nil {
 		return err
 	}
 	if err := db.StartUserServer(); err != nil {
-		log.Println(err)
 		return err
 	}
 	if err := friend.StartFriendServer(); err != nil {
-		log.Println(err)
 		return err
 	}
 	if err := chatlog.StartChatLogServer(); err != nil {
-		log.Println(err)
 		return err
 	}
 	return nil

@@ -1,6 +1,6 @@
 package group
 
-import "server/pkg/common/db"
+import "github.com/chdlvy/go-chatFrame/pkg/common/db"
 
 func User2GroupMember(user *db.UserModel) *db.GroupMemberModel {
 	return &db.GroupMemberModel{

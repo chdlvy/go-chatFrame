@@ -1,9 +1,9 @@
 package msggateway
 
 import (
-	"chatFrame/pkg/common/model"
 	"context"
 	"fmt"
+	"github.com/chdlvy/go-chatFrame/pkg/common/model"
 	"github.com/goccy/go-json"
 	"log"
 	"net/http"
@@ -31,11 +31,11 @@ type WsServer struct {
 	midServer *MidServer
 }
 
-func NewWsServer(config *configStruct) *WsServer {
+func NewWsServer(wsPort int, wsSocketTimeout time.Duration, wsMaxConnNum int) *WsServer {
 	return &WsServer{
-		port:             config.LongConnconf.port,
-		wsMaxConnNum:     config.LongConnconf.WebsocketMaxConnNum,
-		handshakeTimeout: config.LongConnconf.WebsocketTimeout,
+		port:             wsPort,
+		wsMaxConnNum:     wsMaxConnNum,
+		handshakeTimeout: wsSocketTimeout,
 		clients:          newUserMap(),
 		//后续考虑用grpc解耦
 		midServer: NewMidServer(),
