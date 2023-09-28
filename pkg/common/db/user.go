@@ -2,6 +2,8 @@ package db
 
 import (
 	"context"
+	"github.com/google/uuid"
+	"strconv"
 	"time"
 )
 
@@ -34,4 +36,9 @@ func StartUserServer() error {
 		return nil
 	}
 	return nil
+}
+func GenUserID() uint64 {
+	id := uuid.New()
+	uid, _ := strconv.Atoi(id.String())
+	return uint64(uid)
 }

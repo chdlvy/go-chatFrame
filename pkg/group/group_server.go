@@ -2,32 +2,21 @@ package group
 
 import (
 	"context"
-	"errors"
 	"github.com/chdlvy/go-chatFrame/pkg/common/db"
-	"math/rand"
+	"github.com/google/uuid"
+	"strconv"
 	"time"
 )
 
 type GroupServer struct {
-	GroupIDs map[int]bool
-	Groups   map[uint64]*Group
-	GroupDB  db.GroupDatabase
+	GroupDB db.GroupDatabase
 }
 
 func NewGroupServer() *GroupServer {
 
 	return &GroupServer{
-		Groups:   make(map[uint64]*Group),
-		GroupIDs: make(map[int]bool),
-		GroupDB:  db.InitGroupDatabase(db.DBConn),
+		GroupDB: db.InitGroupDatabase(db.DBConn),
 	}
-}
-func (g *GroupServer) GetGroup(groupID uint64) (*Group, error) {
-	v, ok := g.Groups[groupID]
-	if !ok {
-		return nil, errors.New("group is not exist")
-	}
-	return v, nil
 }
 
 func (g *GroupServer) CreateGroup(groupInfo *GroupInfo, userIDs []uint64) (*Group, error) {
@@ -62,8 +51,6 @@ func (g *GroupServer) CreateGroup(groupInfo *GroupInfo, userIDs []uint64) (*Grou
 	groupMember.InviterUserID = 0
 	//mysql,container create group and take member to group
 	g.GroupDB.CreateGroup(context.Background(), dbgroup, []*db.GroupMemberModel{groupMember})
-
-	g.Groups[groupID] = group
 	//creator join group and the other member join group
 	err = g.JoinGroup(groupID, creator.UserID, creator.UserID)
 	if err != nil {
@@ -85,32 +72,14 @@ func (g *GroupServer) JoinGroup(groupID, inviterID, userID uint64) error {
 	if err != nil {
 		return err
 	}
-	//gm := &GroupMember{
-	//	UserID:        user.UserID,
-	//	NickName:      user.NickName,
-	//	FaceURL:       user.FaceURL,
-	//	JoinTime:      time.Now(),
-	//	InviterUserID: inviterID,
-	//}
 	g.GroupDB.JoinGroup(context.Background(), groupID, inviterID, []*db.UserModel{user})
-	//g.Groups[groupID].GroupMember = append(g.Groups[groupID].GroupMember, gm)
 	return nil
 }
 
 func (g *GroupServer) GenGroupID(groupID *uint64) {
-	rand.Seed(time.Now().UnixNano())
-	for {
-		// 生成随机数作为群号，范围在 10000 到 100000 之间
-		gID := rand.Intn(90001) + 10000
-
-		// 检查群号是否已被使用
-		if !g.GroupIDs[gID] {
-			// 群号未被使用，分配该群号
-			g.GroupIDs[gID] = true
-			*groupID = uint64(gID)
-			break
-		}
-	}
+	id := uuid.New()
+	gid, _ := strconv.Atoi(id.String())
+	*groupID = uint64(gid)
 }
 
 func (g *GroupServer) KickMember(groupID, MemberID uint64) error {

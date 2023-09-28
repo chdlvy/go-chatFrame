@@ -26,15 +26,15 @@ type GroupMember struct {
 }
 
 type GroupInfo struct {
-	GroupID       uint64 `protobuf:"bytes,1,opt,name=groupID,proto3" json:"groupID"`
-	GroupName     string `protobuf:"bytes,2,opt,name=groupName,proto3" json:"groupName"`
-	Introduction  string `protobuf:"bytes,4,opt,name=introduction,proto3" json:"introduction"`
-	FaceURL       string `protobuf:"bytes,5,opt,name=faceURL,proto3" json:"faceURL"`
-	CreateTime    int64  `protobuf:"varint,7,opt,name=createTime,proto3" json:"createTime"`
-	MemberCount   uint32 `protobuf:"varint,8,opt,name=memberCount,proto3" json:"memberCount"`
-	Status        int32  `protobuf:"varint,10,opt,name=status,proto3" json:"status"`
-	CreatorUserID string `protobuf:"bytes,11,opt,name=creatorUserID,proto3" json:"creatorUserID"`
-	GroupType     int32  `protobuf:"varint,12,opt,name=groupType,proto3" json:"groupType"`
+	GroupID       uint64 `json:"groupID"`
+	GroupName     string `json:"groupName"`
+	Introduction  string ` json:"introduction"`
+	FaceURL       string `json:"faceURL"`
+	CreateTime    int64  ` json:"createTime"`
+	MemberCount   uint32 ` json:"memberCount"`
+	Status        int32  ` json:"status"`
+	CreatorUserID uint64 ` json:"creatorUserID"`
+	GroupType     int32  ` json:"groupType"`
 }
 
 func StartGroupServer() error {

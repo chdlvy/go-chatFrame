@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"gopkg.in/yaml.v3"
 	"os"
@@ -20,12 +21,34 @@ const (
 )
 
 // configFolderPath is relation path and start from root directory of this project
+//func InitConfig(configName, configFolderPath string) error {
+//	if configFolderPath == "" {
+//		configFolderPath = DefaultFolderPath
+//	}
+//
+//	configpath := filepath.Join(Root, configFolderPath, configName)
+//	fmt.Println("configpath:", configpath)
+//	_, err := os.Stat(configpath)
+//	if err != nil {
+//		return err
+//	}
+//	data, err := os.ReadFile(configpath)
+//	if err != nil {
+//		return err
+//	}
+//	if err = yaml.Unmarshal(data, &Config); err != nil {
+//		return err
+//	}
+//	return nil
+//}
+
+// configFolderPath must be absolute path
 func InitConfig(configName, configFolderPath string) error {
 	if configFolderPath == "" {
-		configFolderPath = DefaultFolderPath
+		return errors.New("configPath is null")
 	}
 
-	configpath := filepath.Join(Root, configFolderPath, configName)
+	configpath := filepath.Join(configFolderPath, configName)
 	fmt.Println("configpath:", configpath)
 	_, err := os.Stat(configpath)
 	if err != nil {
