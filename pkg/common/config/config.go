@@ -17,9 +17,16 @@ type configStruct struct {
 		//字符集的排序规则或排序规则名称
 		Collate string `yaml:"collate"`
 	} `yaml:"mysql"`
+
 	Redis struct {
 		Address  []string `yaml:"address"`
 		Username string   `yaml:"username"`
 		Password string   `yaml:"password"`
 	} `yaml:"redis"`
+
+	RabbitMq struct {
+		Address  string `yaml:"address"`
+		Username string `yaml:"username"`
+		Password string `yaml:"password"`
+	} `yaml:"rabbitmq"`
 }

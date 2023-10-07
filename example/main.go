@@ -31,7 +31,7 @@ func main() {
 	absolutePath := filepath.Join(currentDir, "/config/")
 	config.InitConfig("config.yaml", absolutePath)
 
-	if err := chatFrame.RunWsServer(8080, 5*time.Second, 1000); err != nil {
+	if err := chatFrame.RunWsServer(9090, 5*time.Second, 1000); err != nil {
 		log.SetFlags(log.Llongfile)
 		log.Println(err)
 	}

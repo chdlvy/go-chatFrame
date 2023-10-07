@@ -2,7 +2,7 @@ mysql:
   address: 127.0.0.1:3306
   username: root
   password: 123456
-  database: chatIM
+  database: chatim
   maxOpenConn: 1000
   maxIdleConn: 100
   maxLifeTime: 60
@@ -14,3 +14,8 @@ redis:
     - 127.0.0.1:6379
   username:
   password:
+
+rabbitmq:
+  address: 127.0.0.1:5672
+  username: guest
+  password: guest

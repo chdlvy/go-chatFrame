@@ -12,6 +12,7 @@ type MsgData struct {
 	IsRead         bool   `json:"isRead,omitempty"`
 	SessionType    int    `json:"sessionType"`
 	IsImage        bool   `json:"isImage"`
+	Seq            int64  `json:"seq"`
 }
 
 type User struct {

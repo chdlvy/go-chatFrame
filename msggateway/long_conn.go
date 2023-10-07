@@ -2,6 +2,7 @@ package msggateway
 
 import (
 	"github.com/gorilla/websocket"
+	"log"
 	"net/http"
 	"time"
 )
@@ -32,6 +33,7 @@ func (g *GWebSocket) GenerateLongConn(w http.ResponseWriter, r *http.Request) er
 	}
 	conn, err := upgrade.Upgrade(w, r, nil)
 	if err != nil {
+		log.Println("upgrade.Upgrade err：", err)
 		return err
 	}
 	g.conn = conn

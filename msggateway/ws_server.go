@@ -27,16 +27,25 @@ type WsServer struct {
 	onlineUserNum    uint64
 	handshakeTimeout time.Duration
 	clients          *UserMap
+	MQ               *MsgQueue
 	//后续考虑用grpc解耦
 	midServer *MidServer
 }
 
 func NewWsServer(wsPort int, wsSocketTimeout time.Duration, wsMaxConnNum int) *WsServer {
+	msgqueue, err := NewMsgQueue()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := msgqueue.InitMQ(); err != nil {
+		log.Fatal(err)
+	}
 	return &WsServer{
 		port:             wsPort,
 		wsMaxConnNum:     wsMaxConnNum,
 		handshakeTimeout: wsSocketTimeout,
 		clients:          newUserMap(),
+		MQ:               msgqueue,
 		//后续考虑用grpc解耦
 		midServer: NewMidServer(),
 	}
@@ -51,6 +60,7 @@ var UserID uint64 = 1
 func (ws *WsServer) wsHandler(w http.ResponseWriter, r *http.Request) {
 	wsLongConn := newGWebSocket(ws.handshakeTimeout)
 	err := wsLongConn.GenerateLongConn(w, r)
+	fmt.Println("wsLongConn：", wsLongConn)
 	wsLongConn.conn.SetCloseHandler(func(code int, text string) error {
 		log.Println("frontend conn closed")
 		wsLongConn.conn.Close()
@@ -73,6 +83,7 @@ func (ws *WsServer) wsHandler(w http.ResponseWriter, r *http.Request) {
 
 // 客户端上线
 func (ws *WsServer) registerClient(client *Client) {
+
 	userId := strconv.Itoa(int(client.UserID))
 	_, isExist := ws.clients.Get(userId)
 	if !isExist {
@@ -84,6 +95,8 @@ func (ws *WsServer) registerClient(client *Client) {
 		//重新添加新的客户端
 		ws.clients.Set(userId, client)
 	}
+	//创建一个mq成员
+	ws.MQ.CreateMqMember(60000, client)
 }
 
 // 客户端下线
@@ -115,6 +128,10 @@ func (ws *WsServer) SendMsg(data *model.MsgData) (err error) {
 	}
 	sendData, err := json.Marshal(data)
 	if err != nil {
+		return err
+	}
+	//消息提醒
+	if err := ws.MQ.NotificationPrivateMsg(context.Background(), client, sendData); err != nil {
 		return err
 	}
 	if err := client.writeMessage(int(data.ContentType), sendData); err != nil {
