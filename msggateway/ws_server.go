@@ -95,8 +95,16 @@ func (ws *WsServer) registerClient(client *Client) {
 		//重新添加新的客户端
 		ws.clients.Set(userId, client)
 	}
-	//创建一个mq成员
-	ws.MQ.CreateMqMember(60000, client)
+	//创建一个mq成员同时创建对应的死信队列保存离线消息
+	if err := ws.MQ.CreateMqMember(60000, client); err != nil {
+		log.Fatal(err)
+	}
+	if err := ws.MQ.CreateDLQueueByMember(client); err != nil {
+		log.Fatal(err)
+	}
+
+	//获取离线信息
+	ws.MQ.GetOfflineMsg(client)
 }
 
 // 客户端下线
@@ -130,8 +138,9 @@ func (ws *WsServer) SendMsg(data *model.MsgData) (err error) {
 	if err != nil {
 		return err
 	}
+	notificationMsg := "用户" + strconv.Itoa(int(client.UserID)) + "收到了1条新消息"
 	//消息提醒
-	if err := ws.MQ.NotificationPrivateMsg(context.Background(), client, sendData); err != nil {
+	if err := ws.MQ.NotificationPrivateMsg(context.Background(), client, []byte(notificationMsg)); err != nil {
 		return err
 	}
 	if err := client.writeMessage(int(data.ContentType), sendData); err != nil {

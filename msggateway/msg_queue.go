@@ -4,16 +4,25 @@ import (
 	"context"
 	"fmt"
 	"github.com/chdlvy/go-chatFrame/pkg/common/config"
+	"github.com/chdlvy/go-chatFrame/pkg/common/model"
+	"github.com/goccy/go-json"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"strconv"
 )
 
 const (
-	privateExchange           = "privateExchange"
-	groupExchange             = "groupExchange"
-	broadcastExchange         = "broadcastExchange"
-	deadLetterPrivateExchange = "deadLetterPrivateExchange"
-	deadLetterGroupExchange   = "deadLetterGroupExchange"
+	privateExchange   = "privateExchange"
+	groupExchange     = "groupExchange"
+	broadcastExchange = "broadcastExchange"
+	DLPrivateExchange = "deadLetterPrivateExchange"
+	DLGroupExchange   = "deadLetterGroupExchange"
+)
+const (
+	//队列名称和绑定的前缀规则
+	privateQueuePre    = "uqueue_"
+	privateBindPre     = "uid_"
+	privateConsumerPre = "consumer_"
+	PrivateDLQueuePre  = "dlqueue_"
 )
 
 type MsgQueue struct {
@@ -49,9 +58,6 @@ func (mq *MsgQueue) InitMQ() error {
 	if err := mq.createExchange(); err != nil {
 		return err
 	}
-	//if err := mq.createDeadLetterExchange(); err != nil {
-	//	return err
-	//}
 	return nil
 }
 func (mq *MsgQueue) createExchange() error {
@@ -73,28 +79,34 @@ func (mq *MsgQueue) CreateGroupExchange(groupID uint64) error {
 	return nil
 }
 
-//重新考虑死信
-//func (mq *MsgQueue) createDeadLetterExchange() error {
-//	if err := mq.ch.ExchangeDeclare(deadLetterPrivateExchange, "direct", true, false, false, false, nil); err != nil {
-//		return err
-//	}
-//	if err := mq.ch.ExchangeDeclare(deadLetterGroupExchange, "direct", true, false, false, false, nil); err != nil {
-//		return err
-//	}
-//	return nil
-//}
+func (mq *MsgQueue) NotificationPrivateMsg(ctx context.Context, client *Client, data []byte) error {
+	//fmt.Println("(消息提醒)发送消息给：", client.UserID)
+	UBind := privateBindPre + strconv.Itoa(int(client.UserID))
+	return mq.ch.PublishWithContext(ctx,
+		privateExchange,
+		UBind,
+		false,
+		false,
+		amqp.Publishing{
+			DeliveryMode: amqp.Persistent,
+			ContentType:  "text/plain",
+			Body:         data,
+		})
+}
 
 // 每注册一个用户就创建一个mqmember
-func (mq *MsgQueue) CreateMqMember(msgTTL uint64, client *Client) error {
-	fmt.Println("createMqMember：", client.UserID)
+// queueName: uqueue_xxx
+// bind：uid_xxx
+func (mq *MsgQueue) CreateMqMember(msgTTL int64, client *Client) error {
 	//创建队列
 	args := map[string]interface{}{
 		"x-message-ttl": msgTTL,
 	}
 	UID := strconv.Itoa(int(client.UserID))
+	UQueue := privateQueuePre + UID
 	//根据uid创建一个用户队列
 	q, err := mq.ch.QueueDeclare(
-		UID,
+		UQueue,
 		true,
 		false,
 		false,
@@ -104,8 +116,9 @@ func (mq *MsgQueue) CreateMqMember(msgTTL uint64, client *Client) error {
 		return err
 	}
 	//绑定privateExchange
-	if err := mq.ch.QueueBind(q.Name,
-		UID,
+	UBind := privateBindPre + UID
+	if err = mq.ch.QueueBind(q.Name,
+		UBind,
 		privateExchange,
 		false,
 		nil); err != nil {
@@ -114,7 +127,7 @@ func (mq *MsgQueue) CreateMqMember(msgTTL uint64, client *Client) error {
 
 	//绑定消费者
 	msgs, err := mq.ch.Consume(q.Name,
-		"",
+		privateConsumerPre+UID,
 		false,
 		false,
 		false,
@@ -125,11 +138,45 @@ func (mq *MsgQueue) CreateMqMember(msgTTL uint64, client *Client) error {
 	}
 	go func() {
 		for msg := range msgs {
-			//client.writeMessage()
-			fmt.Println("rabbitmq consumer get a msg：", msg)
+			//如果客户端离线则不ack
+			client.writeMessage(1, msg.Body)
+			msg.Ack(false)
 		}
 	}()
 
+	return nil
+}
+
+func (mq *MsgQueue) CreateDLQueueByMember(client *Client) error {
+
+	UID := strconv.Itoa(int(client.UserID))
+	args := map[string]interface{}{
+		"x-dead-letter-exchange": DLPrivateExchange,
+	}
+	qname := PrivateDLQueuePre + UID
+	_, err := mq.ch.QueueDeclare(
+		qname,
+		true,
+		false,
+		false,
+		false,
+		args)
+	if err != nil {
+		return err
+	}
+	//msgs, err := mq.ch.Consume(q.Name, privateConsumerPre+UID, false, false, false, false, nil)
+	//if err != nil {
+	//	return err
+	//}
+	//go func() {
+	//	for msg := range msgs {
+	//		content := msg.Body
+	//		var data *model.MsgData
+	//		json.Unmarshal(content, &data)
+	//		client.writeMessage(1, []byte("接收旧消息----"))
+	//		client.writeMessage(int(data.ContentType), content)
+	//	}
+	//}()
 	return nil
 }
 
@@ -162,17 +209,34 @@ func (mq *MsgQueue) LeaveGroup(userID, groupID uint64) error {
 	return nil
 }
 
-func (mq *MsgQueue) NotificationPrivateMsg(ctx context.Context, client *Client, data []byte) error {
-	fmt.Println("(消息提醒)发送消息给：", client.UserID)
+func (mq *MsgQueue) GetOfflineMsg(client *Client) error {
 	UID := strconv.Itoa(int(client.UserID))
-	return mq.ch.PublishWithContext(ctx,
-		privateExchange,
-		UID,
-		false,
-		false,
-		amqp.Publishing{
-			DeliveryMode: amqp.Persistent,
-			ContentType:  "text/plain",
-			Body:         data,
-		})
+
+	qname := PrivateDLQueuePre + UID
+	msgs, err := mq.ch.Consume(qname, privateConsumerPre+UID, false, false, false, false, nil)
+	if err != nil {
+		return err
+	}
+	go func() {
+		for msg := range msgs {
+			content := msg.Body
+			var data *model.MsgData
+			json.Unmarshal(content, &data)
+			client.writeMessage(1, []byte("接收旧消息----"))
+			client.writeMessage(int(data.ContentType), content)
+			msg.Ack(false)
+		}
+	}()
+	return nil
 }
+
+//重新考虑死信
+//func (mq *MsgQueue) createDeadLetterExchange() error {
+//	if err := mq.ch.ExchangeDeclare(deadLetterPrivateExchange, "direct", true, false, false, false, nil); err != nil {
+//		return err
+//	}
+//	if err := mq.ch.ExchangeDeclare(deadLetterGroupExchange, "direct", true, false, false, false, nil); err != nil {
+//		return err
+//	}
+//	return nil
+//}
