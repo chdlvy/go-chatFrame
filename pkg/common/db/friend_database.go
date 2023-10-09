@@ -44,7 +44,11 @@ func (f *friendDatabase) FindFriends(ctx context.Context, ownerUserID uint64) (f
 }
 
 func NewFriendDatabase(friend FriendModelInterface, friendRequest FriendRequestModelInterface, rdb cache.FriendCache) FriendDatabase {
-	return &friendDatabase{friend: friend, friendRequest: friendRequest, friendRdb: rdb, tx: DBConn}
+	dbconn, err := NewGormDB()
+	if err != nil {
+		log.Println(err)
+	}
+	return &friendDatabase{friend: friend, friendRequest: friendRequest, friendRdb: rdb, tx: dbconn}
 }
 func (f *friendDatabase) CheckIn(ctx context.Context, ownUserID, friendID uint64) (bool, error) {
 	friendIDs, err := f.friend.FindFriendIDs(ctx, ownUserID)

@@ -86,7 +86,7 @@ func (mq *MsgQueue) CreateGroupExchange(groupID uint64) error {
 
 // 每注册一个用户就创建一个mqmember
 func (mq *MsgQueue) CreateMqMember(msgTTL uint64, client *Client) error {
-
+	fmt.Println("createMqMember：", client.UserID)
 	//创建队列
 	args := map[string]interface{}{
 		"x-message-ttl": msgTTL,

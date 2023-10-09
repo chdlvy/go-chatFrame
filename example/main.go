@@ -13,6 +13,13 @@ import (
 )
 
 func main() {
+	currentDir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("无法获取当前工作目录：", err)
+		return
+	}
+	absolutePath := filepath.Join(currentDir, "/config/")
+	config.InitConfig("config.yaml", absolutePath)
 
 	go func() {
 		r := gin.Default()
@@ -22,14 +29,6 @@ func main() {
 			log.Println(err)
 		}
 	}()
-
-	currentDir, err := os.Getwd()
-	if err != nil {
-		fmt.Println("无法获取当前工作目录：", err)
-		return
-	}
-	absolutePath := filepath.Join(currentDir, "/config/")
-	config.InitConfig("config.yaml", absolutePath)
 
 	if err := chatFrame.RunWsServer(9090, 5*time.Second, 1000); err != nil {
 		log.SetFlags(log.Llongfile)

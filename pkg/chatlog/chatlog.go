@@ -3,6 +3,7 @@ package chatlog
 import (
 	"github.com/chdlvy/go-chatFrame/pkg/common/db"
 	"github.com/chdlvy/go-chatFrame/pkg/common/model"
+	"log"
 )
 
 type ChatLogServer struct {
@@ -10,7 +11,11 @@ type ChatLogServer struct {
 }
 
 func NewChatLogServer() *ChatLogServer {
-	chatLogDB := db.NewChatLogGorm(db.DBConn)
+	dbconn, err := db.NewGormDB()
+	if err != nil {
+		log.Println(err)
+	}
+	chatLogDB := db.NewChatLogGorm(dbconn)
 	return &ChatLogServer{chatLogDatabase: db.NewChatLogDatabase(chatLogDB)}
 }
 func (c *ChatLogServer) CreateChatLog(msg *model.MsgData) error {

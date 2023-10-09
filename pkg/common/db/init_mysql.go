@@ -11,12 +11,12 @@ import (
 var DBConn *gorm.DB
 
 func NewGormDB() (*gorm.DB, error) {
-	if DBConn != nil {
-		return DBConn, nil
-	}
+	//if DBConn != nil {
+	//	return DBConn, nil
+	//}
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=true&loc=Local",
-		config.Config.Mysql.Username, config.Config.Mysql.Password, config.Config.Mysql.Address, config.Config.Mysql.Database)
-	fmt.Println(config.Config.Mysql.Username, config.Config.Mysql.Password, config.Config.Mysql.Address, config.Config.Mysql.Database)
+		config.Config.Mysql.Username, config.Config.Mysql.Password, config.Config.Mysql.Address, "mysql")
+	//fmt.Println("connect mysql dsn：", dsn)
 	db, err := gorm.Open(mysql.Open(dsn))
 	if err != nil {
 		return nil, err
@@ -25,7 +25,7 @@ func NewGormDB() (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	//defer sqlDB.Close()
+	defer sqlDB.Close()
 	//设置字符集的默认值
 	charset := config.Config.Mysql.Charset
 	if charset == "" {
@@ -46,11 +46,23 @@ func NewGormDB() (*gorm.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("init db %w", err)
 	}
+
+	//连接数据库
+	dsn = fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=true&loc=Local",
+		config.Config.Mysql.Username, config.Config.Mysql.Password, config.Config.Mysql.Address, config.Config.Mysql.Database)
+	db, err = gorm.Open(mysql.Open(dsn))
+	if err != nil {
+		return nil, err
+	}
+	sqlDB, err = db.DB()
+	if err != nil {
+		return nil, err
+	}
 	sqlDB.SetConnMaxLifetime(time.Second * time.Duration(config.Config.Mysql.MaxLifeTime))
 	sqlDB.SetMaxOpenConns(config.Config.Mysql.MaxOpenConn)
 	sqlDB.SetMaxIdleConns(config.Config.Mysql.MaxIdleConn)
 
-	DBConn = db
-	return DBConn, nil
+	//DBConn = db
+	return db, nil
 
 }

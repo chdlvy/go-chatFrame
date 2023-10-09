@@ -12,8 +12,12 @@ type FriendServer struct {
 }
 
 func NewFriendServer() *FriendServer {
-	friendDB := db.NewFriendGorm(db.DBConn)
-	friendRequestDB := db.NewFriendRequestGorm(db.DBConn)
+	dbconn, err := db.NewGormDB()
+	if err != nil {
+		log.Println(err)
+	}
+	friendDB := db.NewFriendGorm(dbconn)
+	friendRequestDB := db.NewFriendRequestGorm(dbconn)
 	rdb, err := cache.NewRedis()
 	if err != nil {
 		log.Fatal(err)

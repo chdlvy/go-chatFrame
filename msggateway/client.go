@@ -39,7 +39,11 @@ func (c *Client) readMessage() {
 		//log.Print("readMessage = ", string(message))
 
 		data := &model.MsgData{}
-		json.Unmarshal(message, data)
+		//var data *model.MsgData
+
+		if err := json.Unmarshal(message, &data); err != nil {
+			log.Println("json.Unmarshal err：", err)
+		}
 
 		data.ContentType = int32(messageType)
 		if data.IsImage {

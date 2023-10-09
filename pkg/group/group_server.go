@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/chdlvy/go-chatFrame/pkg/common/db"
 	"github.com/google/uuid"
+	"log"
 	"strconv"
 	"time"
 )
@@ -13,14 +14,21 @@ type GroupServer struct {
 }
 
 func NewGroupServer() *GroupServer {
-
+	dbconn, err := db.NewGormDB()
+	if err != nil {
+		log.Println(err)
+	}
 	return &GroupServer{
-		GroupDB: db.InitGroupDatabase(db.DBConn),
+		GroupDB: db.InitGroupDatabase(dbconn),
 	}
 }
 
 func (g *GroupServer) CreateGroup(groupInfo *GroupInfo, userIDs []uint64) (*Group, error) {
-	userDB := db.NewUserGorm(db.DBConn)
+	dbconn, err := db.NewGormDB()
+	if err != nil {
+		log.Println(err)
+	}
+	userDB := db.NewUserGorm(dbconn)
 	creator, err := userDB.Take(context.Background(), userIDs[0])
 	if err != nil {
 		return nil, err
@@ -66,8 +74,11 @@ func (g *GroupServer) JoinGroup(groupID, inviterID, userID uint64) error {
 	if _, err := g.GroupDB.TakeGroup(context.Background(), groupID); err != nil {
 		return err
 	}
-
-	userDB := db.NewUserGorm(db.DBConn)
+	dbconn, err := db.NewGormDB()
+	if err != nil {
+		log.Println(err)
+	}
+	userDB := db.NewUserGorm(dbconn)
 	user, err := userDB.Take(context.Background(), userID)
 	if err != nil {
 		return err
