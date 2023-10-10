@@ -27,14 +27,14 @@ func NewClient(conn LongConn, userId uint64) *Client {
 		UserID: userId,
 	}
 }
-func (c *Client) readMessage() {
+func (c *Client) readMessage() error {
 	_ = c.conn.SetReadDeadline(pongWait)
 	for {
 		messageType, message, err := c.conn.ReadMessage()
 		if err != nil {
 			log.SetFlags(log.Llongfile)
-			log.Println(err)
-			return
+			log.Println("client disconnect：", err)
+			return err
 		}
 		//log.Print("readMessage = ", string(message))
 

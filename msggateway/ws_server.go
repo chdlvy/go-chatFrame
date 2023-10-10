@@ -14,7 +14,7 @@ import (
 type LongConnServer interface {
 	Run() error
 	GetUserConn(userID string) (*Client, bool)
-	registerClient(client *Client)
+	registerClient(ctx context.Context, client *Client)
 	unregisterClient(client *Client)
 	KickUserConn(client *Client)
 	SendMsg(data *model.MsgData) (err error)
@@ -60,7 +60,7 @@ var UserID uint64 = 1
 func (ws *WsServer) wsHandler(w http.ResponseWriter, r *http.Request) {
 	wsLongConn := newGWebSocket(ws.handshakeTimeout)
 	err := wsLongConn.GenerateLongConn(w, r)
-	fmt.Println("wsLongConn：", wsLongConn)
+	//fmt.Println("wsLongConn：", wsLongConn)
 	wsLongConn.conn.SetCloseHandler(func(code int, text string) error {
 		log.Println("frontend conn closed")
 		wsLongConn.conn.Close()
@@ -73,16 +73,24 @@ func (ws *WsServer) wsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	//初始化客户端
 	client := NewClient(wsLongConn, UserID)
-	ws.registerClient(client)
+	ctx, cancel := context.WithCancel(context.Background())
+	ws.registerClient(ctx, client)
 	UserID++
-	go client.readMessage()
+	go func() {
+		err = client.readMessage()
+		if err != nil {
+			//用户断开连接直接关闭该用户所有的rabbitmq的consumer监听
+			ws.unregisterClient(client)
+			cancel()
+		}
+	}()
 	//go client.heartbeat()
 	time.Sleep(1 * time.Second / 2)
 	log.Print("websocket start successed,online numbers：", ws.onlineUserNum)
 }
 
 // 客户端上线
-func (ws *WsServer) registerClient(client *Client) {
+func (ws *WsServer) registerClient(ctx context.Context, client *Client) {
 
 	userId := strconv.Itoa(int(client.UserID))
 	_, isExist := ws.clients.Get(userId)
@@ -96,15 +104,16 @@ func (ws *WsServer) registerClient(client *Client) {
 		ws.clients.Set(userId, client)
 	}
 	//创建一个mq成员同时创建对应的死信队列保存离线消息
-	if err := ws.MQ.CreateMqMember(60000, client); err != nil {
+	if err := ws.MQ.CreateMqMember(ctx, 60000, client); err != nil {
 		log.Fatal(err)
 	}
 	if err := ws.MQ.CreateDLQueueByMember(client); err != nil {
 		log.Fatal(err)
 	}
-
 	//获取离线信息
-	ws.MQ.GetOfflineMsg(client)
+	if err := ws.MQ.GetOfflineMsg(ctx, client); err != nil {
+		log.Fatal(err)
+	}
 }
 
 // 客户端下线

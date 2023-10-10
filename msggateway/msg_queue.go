@@ -14,15 +14,16 @@ const (
 	privateExchange   = "privateExchange"
 	groupExchange     = "groupExchange"
 	broadcastExchange = "broadcastExchange"
-	DLPrivateExchange = "deadLetterPrivateExchange"
+	DLPrivateExchange = "dlPrivateExchange"
 	DLGroupExchange   = "deadLetterGroupExchange"
 )
 const (
 	//队列名称和绑定的前缀规则
-	privateQueuePre    = "uqueue_"
-	privateBindPre     = "uid_"
-	privateConsumerPre = "consumer_"
-	PrivateDLQueuePre  = "dlqueue_"
+	privateQueuePre      = "uqueue_"
+	privateBindPre       = "uid_"
+	privateConsumerPre   = "consumer_"
+	DLprivateConsumerPre = "dlConsumer_"
+	PrivateDLQueuePre    = "dlqueue_"
 )
 
 type MsgQueue struct {
@@ -67,6 +68,9 @@ func (mq *MsgQueue) createExchange() error {
 	if err := mq.ch.ExchangeDeclare(privateExchange, "direct", true, false, false, false, nil); err != nil {
 		return err
 	}
+	if err := mq.ch.ExchangeDeclare(DLPrivateExchange, "direct", true, false, false, false, nil); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -97,7 +101,7 @@ func (mq *MsgQueue) NotificationPrivateMsg(ctx context.Context, client *Client, 
 // 每注册一个用户就创建一个mqmember
 // queueName: uqueue_xxx
 // bind：uid_xxx
-func (mq *MsgQueue) CreateMqMember(msgTTL int64, client *Client) error {
+func (mq *MsgQueue) CreateMqMember(ctx context.Context, msgTTL int64, client *Client) error {
 	//创建队列
 	args := map[string]interface{}{
 		"x-message-ttl": msgTTL,
@@ -125,24 +129,25 @@ func (mq *MsgQueue) CreateMqMember(msgTTL int64, client *Client) error {
 		return err
 	}
 
+	mq.StartNotification(ctx, client)
 	//绑定消费者
-	msgs, err := mq.ch.Consume(q.Name,
-		privateConsumerPre+UID,
-		false,
-		false,
-		false,
-		false,
-		nil)
-	if err != nil {
-		return err
-	}
-	go func() {
-		for msg := range msgs {
-			//如果客户端离线则不ack
-			client.writeMessage(1, msg.Body)
-			msg.Ack(false)
-		}
-	}()
+	//msgs, err := mq.ch.Consume(q.Name,
+	//	privateConsumerPre+UID,
+	//	false,
+	//	false,
+	//	false,
+	//	false,
+	//	nil)
+	//if err != nil {
+	//	return err
+	//}
+	//go func() {
+	//	for msg := range msgs {
+	//		//如果客户端离线则不ack
+	//		client.writeMessage(1, msg.Body)
+	//		msg.Ack(false)
+	//	}
+	//}()
 
 	return nil
 }
@@ -150,10 +155,11 @@ func (mq *MsgQueue) CreateMqMember(msgTTL int64, client *Client) error {
 func (mq *MsgQueue) CreateDLQueueByMember(client *Client) error {
 
 	UID := strconv.Itoa(int(client.UserID))
-	args := map[string]interface{}{
-		"x-dead-letter-exchange": DLPrivateExchange,
-	}
 	qname := PrivateDLQueuePre + UID
+	args := map[string]interface{}{
+		"x-dead-letter-exchange":    DLPrivateExchange,
+		"x-dead-letter-routing-key": qname,
+	}
 	_, err := mq.ch.QueueDeclare(
 		qname,
 		true,
@@ -164,19 +170,77 @@ func (mq *MsgQueue) CreateDLQueueByMember(client *Client) error {
 	if err != nil {
 		return err
 	}
-	//msgs, err := mq.ch.Consume(q.Name, privateConsumerPre+UID, false, false, false, false, nil)
-	//if err != nil {
-	//	return err
-	//}
-	//go func() {
-	//	for msg := range msgs {
-	//		content := msg.Body
-	//		var data *model.MsgData
-	//		json.Unmarshal(content, &data)
-	//		client.writeMessage(1, []byte("接收旧消息----"))
-	//		client.writeMessage(int(data.ContentType), content)
-	//	}
-	//}()
+	return nil
+}
+
+func (mq *MsgQueue) GetOfflineMsg(ctx context.Context, client *Client) error {
+	UID := strconv.Itoa(int(client.UserID))
+
+	qname := PrivateDLQueuePre + UID
+	msgs, err := mq.ch.Consume(qname,
+		privateConsumerPre+UID,
+		false,
+		false,
+		false,
+		false,
+		nil)
+	if err != nil {
+		return err
+	}
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case msg := <-msgs:
+				content := msg.Body
+				fmt.Println(string(content))
+				var data *model.MsgData
+				json.Unmarshal(content, &data)
+				client.writeMessage(1, []byte("接收旧消息----"))
+				client.writeMessage(int(data.ContentType), content)
+				msg.Ack(false)
+			}
+		}
+	}()
+	return nil
+}
+
+func (mq *MsgQueue) StartNotification(ctx context.Context, client *Client) error {
+	UID := strconv.Itoa(int(client.UserID))
+	qname := privateQueuePre + UID
+	//消费常规队列的消费者
+	msgs, err := mq.ch.Consume(qname,
+		privateConsumerPre+UID,
+		false,
+		false,
+		false,
+		false,
+		nil)
+	if err != nil {
+		return err
+	}
+	//消费死信队列的消费者
+	dlqname := PrivateDLQueuePre + UID
+	dlmsg, err := mq.ch.Consume(dlqname, DLprivateConsumerPre+UID, false, false, false, false, nil)
+	if err != nil {
+		return err
+	}
+	go func() {
+		for {
+			select {
+			//如果用户断开连接，关闭协程
+			case <-ctx.Done():
+				fmt.Println("ctx Done,client disconnect")
+				return
+			case msg := <-msgs:
+				//如果客户端离线则不ack
+				client.writeMessage(1, msg.Body)
+				msg.Ack(false)
+			}
+
+		}
+	}()
 	return nil
 }
 
@@ -206,27 +270,6 @@ func (mq *MsgQueue) LeaveGroup(userID, groupID uint64) error {
 		nil); err != nil {
 		return err
 	}
-	return nil
-}
-
-func (mq *MsgQueue) GetOfflineMsg(client *Client) error {
-	UID := strconv.Itoa(int(client.UserID))
-
-	qname := PrivateDLQueuePre + UID
-	msgs, err := mq.ch.Consume(qname, privateConsumerPre+UID, false, false, false, false, nil)
-	if err != nil {
-		return err
-	}
-	go func() {
-		for msg := range msgs {
-			content := msg.Body
-			var data *model.MsgData
-			json.Unmarshal(content, &data)
-			client.writeMessage(1, []byte("接收旧消息----"))
-			client.writeMessage(int(data.ContentType), content)
-			msg.Ack(false)
-		}
-	}()
 	return nil
 }
 
