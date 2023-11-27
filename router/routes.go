@@ -2,9 +2,9 @@ package router
 
 import (
 	"context"
+	"github.com/chdlvy/go-chatFrame/internal/msggateway"
 	token "github.com/chdlvy/go-chatFrame/jwt"
 	"github.com/chdlvy/go-chatFrame/middleware"
-	"github.com/chdlvy/go-chatFrame/msggateway"
 	"github.com/chdlvy/go-chatFrame/pkg/common/db"
 	"github.com/chdlvy/go-chatFrame/pkg/group"
 	"github.com/chdlvy/go-chatFrame/utils"

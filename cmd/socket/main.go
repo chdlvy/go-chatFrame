@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/chdlvy/go-chatFrame"
-	"github.com/chdlvy/go-chatFrame/msggateway"
+	"github.com/chdlvy/go-chatFrame/internal/msggateway"
 	"log"
 	"time"
 )

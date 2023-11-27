@@ -1,7 +1,7 @@
 package chatFrame
 
 import (
-	"github.com/chdlvy/go-chatFrame/msggateway"
+	"github.com/chdlvy/go-chatFrame/internal/msggateway"
 	"time"
 )
 
