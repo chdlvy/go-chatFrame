@@ -119,6 +119,7 @@ func (ws *WsServer) registerClient(ctx context.Context, client *Client) {
 // 客户端下线
 func (ws *WsServer) unregisterClient(client *Client) {
 	ws.clients.Delete(strconv.Itoa(int(client.UserID)))
+	client.closed = true
 	ws.onlineUserNum -= 1
 }
 

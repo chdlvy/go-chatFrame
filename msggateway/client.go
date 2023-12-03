@@ -14,6 +14,7 @@ type Client struct {
 	conn   LongConn
 	UserID uint64
 	token  string
+	closed bool
 }
 
 const (
@@ -25,6 +26,7 @@ func NewClient(conn LongConn, userId uint64) *Client {
 	return &Client{
 		conn:   conn,
 		UserID: userId,
+		closed: false,
 	}
 }
 func (c *Client) readMessage() error {

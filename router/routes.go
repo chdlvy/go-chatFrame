@@ -20,6 +20,11 @@ type Route struct {
 }
 
 func (r *Route) InitRouter(e *gin.Engine) {
+	userGroup := e.Group("/user")
+	userGroup.POST("/login")
+	userGroup.POST("/register")
+	e.Use(middleware.CheckAuth())
+	userGroup.POST("/logout")
 	e.Use(middleware.Cors())
 	r.midServer = msggateway.NewMidServer()
 	e.POST("createGroup", r.createGroup)

@@ -26,6 +26,10 @@ const (
 	PrivateDLQueuePre    = "dlqueue_"
 )
 
+const (
+	msgSeq = "seq_"
+)
+
 type MsgQueue struct {
 	conn *amqp.Connection
 	ch   *amqp.Channel
@@ -237,11 +241,31 @@ func (mq *MsgQueue) StartNotification(ctx context.Context, client *Client) error
 				//如果客户端离线则不ack
 				client.writeMessage(1, msg.Body)
 				msg.Ack(false)
+
+			case dlm := <-dlmsg:
+				content := dlm.Body
+				fmt.Println(string(content))
+				var data *model.MsgData
+				json.Unmarshal(content, &data)
+				client.writeMessage(1, []byte("接收旧消息----"))
+				client.writeMessage(int(data.ContentType), content)
+				dlm.Ack(false)
 			}
 
 		}
 	}()
 	return nil
+}
+func handleMessage(ctx context.Context, msg *amqp.Delivery, client *Client) {
+	UID := strconv.Itoa(int(client.UserID))
+	content := msg.Body
+	var data *model.MsgData
+	json.Unmarshal(content, &data)
+	curseq := ctx.Value(msgSeq + UID).(int64)
+	if data.Seq == curseq+1 {
+
+	}
+
 }
 
 // 加入群聊，添加绑定

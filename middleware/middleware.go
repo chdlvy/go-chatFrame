@@ -60,3 +60,9 @@ func Cors() gin.HandlerFunc {
 		}
 	}
 }
+
+func CheckAuth() gin.HandlerFunc {
+	return func(context *gin.Context) {
+
+	}
+}
