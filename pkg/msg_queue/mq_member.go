@@ -1,6 +1,8 @@
 package msg_queue
 
-import "github.com/chdlvy/go-chatFrame/msggateway"
+import (
+	"github.com/chdlvy/go-chatFrame/internal/msggateway"
+)
 
 type MqMember struct {
 	client msggateway.Client

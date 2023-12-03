@@ -103,8 +103,9 @@ func (ws *WsServer) registerClient(ctx context.Context, client *Client) {
 		//重新添加新的客户端
 		ws.clients.Set(userId, client)
 	}
+
 	//创建一个mq成员同时创建对应的死信队列保存离线消息
-	if err := ws.MQ.CreateMqMember(ctx, 60000, client); err != nil {
+	if err := ws.MQ.CreateMqMember(ctx, 1000, client); err != nil {
 		log.Fatal(err)
 	}
 	if err := ws.MQ.CreateDLQueueByMember(client); err != nil {
@@ -143,6 +144,11 @@ func (ws *WsServer) SendMsg(data *model.MsgData) (err error) {
 	client, ok := ws.GetUserConn(recvID)
 	if !ok {
 		log.Println("push user is not online,userID：", data.RecvID)
+		//消息提醒,对方下线仍发送，消息过期会进入死信队列
+		if err := ws.MQ.NotificationPrivateMsg(context.Background(), data.RecvID, []byte("对方在你离线时发来")); err != nil {
+			return err
+		}
+		return nil
 	}
 	sendData, err := json.Marshal(data)
 	if err != nil {
@@ -150,7 +156,7 @@ func (ws *WsServer) SendMsg(data *model.MsgData) (err error) {
 	}
 	notificationMsg := "用户" + strconv.Itoa(int(client.UserID)) + "收到了1条新消息"
 	//消息提醒
-	if err := ws.MQ.NotificationPrivateMsg(context.Background(), client, []byte(notificationMsg)); err != nil {
+	if err := ws.MQ.NotificationPrivateMsg(context.Background(), client.UserID, []byte(notificationMsg)); err != nil {
 		return err
 	}
 	if err := client.writeMessage(int(data.ContentType), sendData); err != nil {
