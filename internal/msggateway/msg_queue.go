@@ -222,8 +222,8 @@ func (mq *MsgQueue) StartNotification(ctx context.Context, client *Client) error
 		return err
 	}
 	//消费死信队列的消费者
-	//dlqname := PrivateDLQueuePre + UID
-	//dlmsg, err := mq.ch.Consume(dlqname, DLprivateConsumerPre+UID, false, false, false, false, nil)
+	dlqname := PrivateDLQueuePre + UID
+	dlmsg, err := mq.ch.Consume(dlqname, DLprivateConsumerPre+UID, false, false, false, false, nil)
 	if err != nil {
 		return err
 	}
@@ -274,9 +274,9 @@ func handleMessage(ctx context.Context, msg *amqp.Delivery, client *Client) {
 
 }
 
-func handleMessage(msg amqp.Delivery) {
-
-}
+//func handleMessage(msg amqp.Delivery) {
+//
+//}
 
 // 加入群聊，添加绑定
 func (mq *MsgQueue) JoinGroup(userID, groupID uint64) error {

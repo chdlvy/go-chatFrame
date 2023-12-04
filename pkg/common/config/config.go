@@ -29,4 +29,8 @@ type configStruct struct {
 		Username string `yaml:"username"`
 		Password string `yaml:"password"`
 	} `yaml:"rabbitmq"`
+
+	Rpc struct {
+		UserAddress string `yaml:"userAddress"`
+	}
 }

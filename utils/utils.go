@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"github.com/bwmarrin/snowflake"
+	"log"
 	"reflect"
 	"strconv"
 	"strings"
@@ -67,4 +69,12 @@ func StructToMap(obj interface{}) map[string]interface{} {
 		data[name] = value
 	}
 	return data
+}
+func GenerateUserID() uint64 {
+	node, err := snowflake.NewNode(1)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return uint64(node.Generate().Int64())
+
 }
