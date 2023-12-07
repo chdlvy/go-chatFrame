@@ -29,6 +29,11 @@ func (u *UserGorm) Update(ctx context.Context, user *UserModel) (err error) {
 	return u.db(ctx).Updates(user).Error
 }
 
+// 检查账号密码是否正确
+func (u *UserGorm) CheckUserByPhone(ctx context.Context, phone string, password string) (err error) {
+	return u.db(ctx).Where("phone = ? and password = ?", phone, password).Error
+}
+
 // 获取指定用户信息  不存在，也不返回错误.
 func (u *UserGorm) Find(ctx context.Context, userIDs []uint64) (users []*UserModel, err error) {
 	err = u.db(ctx).Where("user_id in (?)", userIDs).Find(&users).Error

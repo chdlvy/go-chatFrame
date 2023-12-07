@@ -3,7 +3,6 @@ package friend
 import (
 	"github.com/chdlvy/go-chatFrame/pkg/common/db"
 	"github.com/chdlvy/go-chatFrame/pkg/common/db/cache"
-	"google.golang.org/grpc"
 	"log"
 )
 
@@ -25,7 +24,7 @@ func Start() error {
 	friendServer := &friendServer{
 		friendDatabase: db.NewFriendDatabase(friendDB, friendRequestDB, friendRdb),
 	}
-	grpcServer := grpc.NewServer()
-	grpcServer.RegisterService()
+	//grpcServer := grpc.NewServer()
+	//grpcServer.RegisterService()
 	return friendServer
 }

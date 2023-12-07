@@ -12,12 +12,15 @@ type UserModel struct {
 	NickName   string    `gorm:"column:name;size:255"`
 	FaceURL    string    `gorm:"column:face_url;size:255"`
 	Token      string    `gorm:"colum:token"`
+	Phone      string    `gorm:"colum:phone"`
 	CreateTime time.Time `gorm:"column:create_time;index:create_time;autoCreateTime"`
 }
 type UserModelInterface interface {
 	Create(ctx context.Context, users []*UserModel) (err error)
 	UpdateByMap(ctx context.Context, userID string, args map[string]interface{}) (err error)
 	Update(ctx context.Context, user *UserModel) (err error)
+	// 检查账号密码是否正确
+	CheckUserByPhone(ctx context.Context, phone string, password string) (err error)
 	// 获取指定用户信息  不存在，也不返回错误
 	Find(ctx context.Context, userIDs []uint64) (users []*UserModel, err error)
 	// 获取某个用户信息  不存在，则返回错误
