@@ -9,6 +9,8 @@ github.com/cespare/xxhash/v2 v2.2.0 h1:DC2CZ1Ep5Y4k3ZQ899DldepgrayRUGE6BBZ/cd9Cj
 github.com/cespare/xxhash/v2 v2.2.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/chdlvy/protocol v1.0.4 h1:wN7v5IWyaDGGLk2B99t40jrPDOu7u5BafOznPFXv5rE=
 github.com/chdlvy/protocol v1.0.4/go.mod h1:3Xh3uUC4d6BV76RrdJP1lV1j8ravZabp9a+NQt4SxR0=
+github.com/chdlvy/protocol v1.0.5 h1:iF1GOOK1EOstO7fuwUaa0Jw4AZ2nxZMMf5wVLEHLXsg=
+github.com/chdlvy/protocol v1.0.5/go.mod h1:3Xh3uUC4d6BV76RrdJP1lV1j8ravZabp9a+NQt4SxR0=
 github.com/chenzhuoyu/base64x v0.0.0-20211019084208-fb5309c8db06/go.mod h1:DH46F32mSOjUmXrMHnKwZdA8wcEefY7UVqBKYGjpdQY=
 github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 h1:qSGYFH7+jGhDF8vLC+iwCD4WpbV1EBDSzWkJODFLams=
 github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311/go.mod h1:b583jCggY9gE99b6G5LEC39OIiVsWj+R97kbl5odCEk=
