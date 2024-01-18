@@ -2,10 +2,11 @@ package db
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/chdlvy/go-chatFrame/pkg/common/config"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"time"
 )
 
 var DBConn *gorm.DB
@@ -16,7 +17,7 @@ func NewGormDB() (*gorm.DB, error) {
 	//}
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=true&loc=Local",
 		config.Config.Mysql.Username, config.Config.Mysql.Password, config.Config.Mysql.Address, "mysql")
-	//fmt.Println("connect mysql dsn：", dsn)
+
 	db, err := gorm.Open(mysql.Open(dsn))
 	if err != nil {
 		return nil, err
